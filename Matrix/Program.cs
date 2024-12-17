@@ -1,129 +1,212 @@
-﻿using System;
+﻿using static System.Console;
 
-namespace MatrixMxN
+int m, n;
+m = InputPositive("Введите кол-во строк m > 0    : ");
+n = InputPositive("Введите кол-во столбцов n > 0 : ");
+    // работаем с матрицей
+Matrix a = new Matrix(m, n);
+a.Print("Исходная матрица:");
+a.Divide();
+a.Print("Разделить элементы в каждом столбце на номер этого столбца:");
+a.Clear();
+a.Print("Почистили:");
+    // теперь в коллекциях
+Lists l = new Lists(m, n);
+l.Print("Исходная коллекция:");
+l.Stats("Статистика коллекции:");
+l.SumOfPositiveElementsInRows("Сумма положительных элементов в строках:");
+
+static int InputPositive(string msg) // by Буцких Вячеслав
 {
-    class Matrix
+    int x = 0;
+    bool cycle = true;
+    while (cycle)
     {
-        int[,] data = new int[1, 1];
-
-        int m = 1;
-        int n = 1;
-
-        public Matrix(int m, int n)
+        try
         {
-            Generate(m, n);
+            Write(msg);
+            x = Convert.ToInt32(ReadLine());
+            if (x > 0)
+            {
+                cycle = false;
+            }
+            else
+            {
+                throw new Exception("Введите число > 0 ! ");
+            }
         }
-        public void Generate(int m, int n)
+        catch (Exception e)
         {
-            this.m = m;
-            this.n = n;
-            data = new int[m, n]; //создаем пустой массив
-            Random random = new Random();
-            //заполняем массив данными
-            for (int i = 0; i < m; i++)
-                for (int j = 0; j < n; j++)
-                {
-                    data[i, j] = random.Next(10, 100);
-                }
-        }
-        public int[,] Transpose()
-        {
-            int[,] transpose = new int[n, m];
-            for (int i = 0; i < m; i++)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    transpose[j, i] = data[i, j];
-                }
-            }
-            return transpose;
-        }
-        public float Average()
-        {
-            if (data == null)
-            {
-                Console.WriteLine("Матрица не существует!");
-                return -1;
-            }
-
-            float sum = 0;
-            for (int i = 0; i < m; i++)
-            {
-                for (int j = 0; j < n; j++)
-                {
-                    sum += data[i, j];
-                }
-            }
-            return sum / (data.GetLength(0) * data.GetLength(1));
-        }
-        public string GetInfo(bool isTranspose, bool needAlInfo)
-        {
-            string matrix = isTranspose ? "----Транспонированная матрица------\n" : "----Исходная матрица------\n";
-            var array = isTranspose ? Transpose() : data;
-
-            int row = isTranspose ? n : m;
-            int col = isTranspose ? m : n;
-
-            if (needAlInfo)
-            {
-                matrix += isTranspose ? $"Размеры: {n}x{m}\n" : $"Размеры: {m}x{n}\n";
-                matrix += $"Среднее значение {Average()} \n";
-            }
-
-            for (int i = 0; i < row; i++)
-            {
-                for (int j = 0; j < col; j++)
-                {
-                    matrix += array[i, j].ToString() + "\t";
-                }
-                matrix += "\n";
-            }
-            return matrix;
+            ForegroundColor = ConsoleColor.Red;
+            WriteLine(e.Message);
+            ResetColor();
         }
     }
-    internal class Program
+    return x;
+}
+
+class Lists : Matrix
+{
+    // строки 
+    public List<List<int>> ?Rows { get; set; }
+    // колонки
+    public List<List<int>> ?Columns { get; set; }
+    // вся матрица в коллекции
+    public List<int> ?L { get; set; }
+
+    public Lists(int m, int n) : base(m, n)
     {
-        static void Main(string[] args)
+        Matrix2Rows();
+        Matrix2Columns();
+        Matrix2List();
+    }
+    void Matrix2Rows()
+    {
+        Rows = new(m);
+        for (int i = 0; i < m; i++)
         {
-            int m = 0;
-            int n = 0;
-            int errors = 0;
-            while ((m == 0) && (n == 0))
+            List<int> TempR = new(n);
+            for (int j = 0; j < n; j++)
             {
-                Console.WriteLine("Введите желаемую размерность матрицы в формате MхN, где M и N - целые числа");
-                Console.WriteLine("Например, 10x5");
-                Console.Write("Размерность матрицы: ");
-                string[] strings = Console.ReadLine().Split('x');
-                if ((strings.Length < 2) || (int.TryParse(strings[0], out m) == false) || (int.TryParse(strings[1], out n) == false))
-                {
-                    errors++;
-                    Console.WriteLine($"Допущено ошибок ввода: {errors}");
-                    if ((errors > 1) && (errors < 4))
-                    {
-                        Console.Beep();
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.WriteLine("Не издевайся надо мной! Пиши так: целое число, затем - маленький ИКС (английская раскладка!), затем - опять целое число. Пробелы ставить не надо");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        continue;
-                    }
-                    else
-                        if (errors == 4)
-                    {
-                        Console.Beep();
-                        Console.Beep();
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine("Ты безнадежен, человек. Закрой программу и иди домой");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        break;
-                    }
-                }
+                TempR.Add(a[i, j]); 
             }
-            if (errors < 4)
+            Rows.Add(TempR);
+        }
+    }
+    void Matrix2Columns()
+    {
+        Columns = new(n);
+        for (int j = 0; j < n; j++)
+        {
+            List<int> TempC = new(m);
+            for (int i = 0; i < m; i++)
             {
-                Matrix matrix = new Matrix(m, n);
-                Console.WriteLine(matrix.GetInfo(false, true));
-                Console.WriteLine(matrix.GetInfo(true, false));
+                TempC.Add(a[i, j]);
+            }
+            Columns.Add(TempC);
+        }
+    }
+    void Matrix2List()
+    {
+        L = new(m*n);
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                L.Add(a[i, j]);
             }
         }
+    }
+    public void Stats(string Header)
+    {
+        if (L == null)
+        {
+            WriteLine("Коллекция пуста");
+            return;
+        }
+        WriteLine(Header);
+        WriteLine("Сумма    = " + L.Sum());
+        WriteLine("Среднее  = " + L.Average());
+        WriteLine("Минимум  = " + L.Min());
+        WriteLine("Максимум = " + L.Max());
+        WriteLine();
+    }
+    public void SumOfPositiveElementsInRows(string Header)
+    {
+        if (Rows == null)
+        {
+            WriteLine("Коллекция пуста");
+            return;
+        }
+        WriteLine(Header);
+        for (int i = 0; i < m; i++)
+        {
+            WriteLine(String.Format("{0,3}", i) + ") " +
+                      Rows[i].FindAll(x => x > 0).Sum());
+        }
+        WriteLine();
+    }
+
+    public override void Print(string Header)
+    {
+        if (Rows == null)
+        {
+            WriteLine("Коллекция пуста");
+            return;
+        }
+        WriteLine(Header);
+        for (int i = 0; i < m; i++)
+        {
+            WriteLine(String.Format("{0,3}", i) + ") " + 
+                      String.Join(", ", Rows[i]));
+        }
+        WriteLine();
+    }
+}
+
+class Matrix
+{
+    public int m { get; set; }
+    public int n { get; set; }
+    public int[,] a;
+    readonly int max = 50;
+
+    public Matrix(int m, int n)
+    {
+        this.m = m;
+        this.n = n;
+        Generate(m, n);
+    }
+    public void Generate(int m, int n)
+    {
+        a = new int[m, n]; // создаем пустой массив
+        Random r = new();
+        //заполняем массив данными
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                a[i, j] = r.Next(-max, max);
+            }
+        }
+    }
+    public void Clear()
+    {
+        a = new int[m, n]; // создаем пустой массив
+    }
+    public void Divide()
+    {
+        for (int i = 0; i < m; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                a[i, j] /= j + 1; // иначе Divide by Zero
+            }
+        }
+    }
+    public virtual void Print(string Header)
+    {
+        if (a == null)
+        {
+            WriteLine("Матрица пуста");
+            return;
+        }
+        WriteLine(Header);
+        Write("   ");
+        for (int j = 0; j < n; j++)
+        {
+            Write(String.Format("{0,5}", j + ")"));
+        }
+        WriteLine();
+        for (int i = 0; i < m; i++)
+        {
+            Write(String.Format("{0,3}", i +")"));
+            for (int j = 0; j < n; j++)
+            {
+                Write(String.Format("{0,5}", a[i, j]));
+            }
+            WriteLine();
+        }
+        WriteLine();
     }
 }
