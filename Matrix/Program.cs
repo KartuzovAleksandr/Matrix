@@ -11,10 +11,12 @@ a.Print("Разделить элементы в каждом столбце на
 a.Clear();
 a.Print("Почистили:");
     // теперь в коллекциях
-Lists l = new Lists(m, n);
+Lists l = new(m, n);
 l.Print("Исходная коллекция:");
 l.Stats("Статистика коллекции:");
 l.SumOfPositiveElementsInRows("Сумма положительных элементов в строках:");
+l.SwapMaxInColsWith1();
+l.Print("Смена min элемента в столбце с первым:");
 
 static int InputPositive(string msg) // by Буцких Вячеслав
 {
@@ -44,7 +46,6 @@ static int InputPositive(string msg) // by Буцких Вячеслав
     }
     return x;
 }
-
 class Lists : Matrix
 {
     // строки 
@@ -97,6 +98,21 @@ class Lists : Matrix
             }
         }
     }
+    void Columns2Rows()
+    {
+        if (Rows == null || Columns == null)
+        {
+            WriteLine("Коллекция пуста");
+            return;
+        }
+        for (int i = 0; i < m; i++)
+        {
+            for(int j = 0; j < n; j++)
+            {
+                Rows[i][j] = Columns[j][i]; 
+            }
+        }
+    }
     public void Stats(string Header)
     {
         if (L == null)
@@ -126,7 +142,21 @@ class Lists : Matrix
         }
         WriteLine();
     }
-
+    public void SwapMaxInColsWith1()
+    {
+        int min, minIndex, temp;
+        for (int i = 0; i < n; i++)
+        {
+            min = Columns[i].Min(); // определяем min в колонке
+            minIndex = Columns[i].IndexOf(min); // ищем его индекс
+            // унив Swap здесь не работает - руками меняем
+            temp = Columns[i][0];
+            Columns[i][0] = Columns[i][minIndex];
+            Columns[i][minIndex] = temp;    
+        }
+        // поскольку изменили Columns? конвертим в Rows для корректного Print
+        Columns2Rows();
+    }
     public override void Print(string Header)
     {
         if (Rows == null)
@@ -135,10 +165,20 @@ class Lists : Matrix
             return;
         }
         WriteLine(Header);
+        Write("   ");
+        for (int j = 0; j < n; j++)
+        {
+            Write(String.Format("{0,5}", j + ")"));
+        }
+        WriteLine();
         for (int i = 0; i < m; i++)
         {
-            WriteLine(String.Format("{0,3}", i) + ") " + 
-                      String.Join(", ", Rows[i]));
+            Write(String.Format("{0,3}", i + ")"));
+            for (int j = 0; j < n; j++)
+            {
+                Write(String.Format("{0,5}", Rows[i][j]));
+            }
+            WriteLine();
         }
         WriteLine();
     }
