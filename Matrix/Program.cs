@@ -15,7 +15,7 @@ Lists l = new(m, n);
 l.Print("Исходная коллекция:");
 l.Stats("Статистика коллекции:");
 l.SumOfPositiveElementsInRows("Сумма положительных элементов в строках:");
-l.SwapMaxInColsWith1();
+l.SwapMinInColsWith1();
 l.Print("Смена min элемента в столбце с первым:");
 
 static int InputPositive(string msg) // by Буцких Вячеслав
@@ -142,19 +142,28 @@ class Lists : Matrix
         }
         WriteLine();
     }
-    public void SwapMaxInColsWith1()
+    public void SwapMinInColsWith1()
     {
         int min, minIndex, temp;
         for (int i = 0; i < n; i++)
         {
-            min = Columns[i].Min(); // определяем min в колонке
+            min = Columns[i].Min(x => Math.Abs(x)); // определяем min в колонке
+            // если min отрицательный (не находится), меняем знак
+            if (Columns[i].IndexOf(min) == -1) {
+                min = -min;
+                minIndex = Columns[i].IndexOf(min); // ищем его индекс
+            }
+            else
+            {
+                minIndex = Columns[i].IndexOf(min); // ищем его индекс
+            }
             minIndex = Columns[i].IndexOf(min); // ищем его индекс
             // унив Swap здесь не работает - руками меняем
             temp = Columns[i][0];
             Columns[i][0] = Columns[i][minIndex];
             Columns[i][minIndex] = temp;    
         }
-        // поскольку изменили Columns? конвертим в Rows для корректного Print
+        // поскольку изменили Columns, конвертим в Rows для корректного Print
         Columns2Rows();
     }
     public override void Print(string Header)
